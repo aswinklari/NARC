@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Email Results{% endblock %}
+
+{% block content %}
+    <div class="results-container">
+        <h2>Email Results for "{{ target }}"</h2>
+        <div class="search-stats">
+            <span class="stat-box">
+                <span class="stat-number">{{ count }}</span>
+                <span class="stat-label">Emails Found</span>
+            </span>
+            <span class="stat-box">
+                <span class="stat-number">{{ sources }}</span>
+                <span class="stat-label">Sources Scanned</span>
+            </span>
+        </div>
+        
+        <div class="results-list">
+            {% for email in emails %}
+                <div class="email-item">
+                    <span class="email">{{ email }}</span>
+                    <div class="email-actions">
+                        <button class="copy-btn" data-email="{{ email }}">Copy</button>
+                        <a href="https://www.google.com/search?q={{ email|urlencode }}" 
+                           target="_blank" class="search-btn">Search</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="result-actions">
+            <a href="{{ url_for('email_harvest') }}" class="btn">New Search</a>
+            <button id="export-csv" class="btn secondary">Export as CSV</button>
+        </div>
+    </div>
+    
+    <script>
+        // Copy functionality
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const email = btn.getAttribute('data-email');
+                navigator.clipboard.writeText(email);
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy', 2000);
+            });
+        });
+        
+        // CSV Export
+        document.getElementById('export-csv').addEventListener('click', () => {
+            const emails = Array.from(document.querySelectorAll('.email')).map(el => el.textContent);
+            const csvContent = "data:text/csv;charset=utf-8,Email\n" + emails.join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "emails_{{ target }}.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    </script>
+{% endblock %}
